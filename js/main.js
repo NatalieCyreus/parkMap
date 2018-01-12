@@ -56,7 +56,7 @@ function initMap() {
 		}
 	}
 
-  // Uses google place api to find parks within 1000 meters of input adress. Invoke callback funtion.
+  // Gets back result JSON from google place Api. Find parks within 1000 meters of input adress. Invoke callback funtion.
 	function findPlaceInArea() {
 		var service = new google.maps.places.PlacesService(map);
 		service.nearbySearch({
@@ -70,6 +70,7 @@ function initMap() {
 	function callback(results, status) {
 		if (status === google.maps.places.PlacesServiceStatus.OK) {
 			for (var i = 0; i < results.length; i++) {
+
 				var position = results[i].geometry.location;
 				var title = results[i].name;
 				//Creates a new marker for each result and push it into the markers array.
@@ -81,10 +82,10 @@ function initMap() {
 					icon: defaultIcon,
 					id: results[i].place_id
 				})
-
+				markers.push(marker);
+				console.log(markers)
 				marker.addListener('click', function() {
 					populateInfoWindow(this, largeInfowindow);
-
 				});
 				marker.addListener('mouseover', function() {
 					this.setIcon(treeIconYellow);
@@ -97,6 +98,7 @@ function initMap() {
 			}
 		}
 	}
+
 }
 
 // when a marker is clicked on it populates that Infowindow and uses google places getDetails to get the places details.
@@ -146,10 +148,3 @@ function hideMarkers(markers) {
 	}
 	$('#list li').remove();
 }
-
-// This adds the results to a listed Div in the dom.
-function AppViewModel() {
-	this.title = title;
-}
-// Activates knockout.js
-ko.applyBindings(new AppViewModel());
