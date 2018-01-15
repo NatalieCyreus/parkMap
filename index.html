@@ -14,8 +14,8 @@
         </div>
         <div>
           <h2>Results</h2>
-          <ul id="resultList">
-          <li data-bind="text: title" id="list"></li>
+          <ul data-bind="foreach: placeList">
+          <li data-bind="text: name" id="list"></li>
           </div>
         </div>
       </div>

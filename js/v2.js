@@ -1,6 +1,6 @@
 var map;
 //blank array for all listing markers.
-var markers = ko.observableArray([]);
+var markers = [];
 var locationArray = [];
 var address;
 var addressLatLng;
@@ -63,64 +63,43 @@ function initMap() {
 			location: addressLatLng,
 			radius: 1000,
 			type: ['park']
-		}, getPlaceArray);
+		}, callback);
 	}
 
-function getPlaceArray(results, status) {
-	if (status === google.maps.places.PlacesServiceStatus.OK) {
-		for (var i=0; i < results.length; i++) {
-			locationArray.push(results[i]);
+  // Creates marker for each result, crates a list of results and eventlistener for the markers.
+	function callback(results, status) {
+		if (status === google.maps.places.PlacesServiceStatus.OK) {
+			for (var i = 0; i < results.length; i++) {
+
+				var position = results[i].geometry.location;
+				var title = results[i].name;
+				//Creates a new marker for each result and push it into the markers array.
+				var marker = new google.maps.Marker({
+					map: map,
+					position: position,
+					title: title,
+					animation: google.maps.Animation.DROP,
+					icon: defaultIcon,
+					id: results[i].place_id
+				})
+				markers.push(marker);
+				console.log(markers)
+				marker.addListener('click', function() {
+					populateInfoWindow(this, largeInfowindow);
+				});
+				marker.addListener('mouseover', function() {
+					this.setIcon(treeIconYellow);
+				});
+				marker.addListener('mouseout', function() {
+					this.setIcon(defaultIcon);
+				});
+				//Creates a list of all results
+				$('#list').append($('<li>').append(title));
+			}
 		}
-		console.log(locationArray);
-		startApp();
 	}
-}
 
-var Place = function(data) {
-	self = this;
-	this.name = data.name;
-	this.position = data.geometry.location;
-	this.id = data.place_id;
-
-	this.infoWindow = new google.maps.InfoWindow({
-		content: self.name });
-
-		this.marker = new google.maps.Marker({
-			map: map,
-			position: this.position,
-			title: this.name,
-			animation: google.maps.Animation.DROP,
-			icon: defaultIcon,
-			id: this.id
-		});
-
-		this.marker.addListener('click', function() {
-			populateInfoWindow(this, largeInfowindow);
-		});
-		this.marker.addListener('mouseover', function() {
-			this.setIcon(treeIconYellow);
-		});
-		this.marker.addListener('mouseout', function() {
-			this.setIcon(defaultIcon);
-		});
 };
-
-function ViewModel() {
-		var self = this;
-		this.placeList = ko.observableArray([]);
-		locationArray.forEach(function(place){
-			var newPlace = new Place(place);
-			//console.log(newPlace);
-			self.placeList.push(newPlace);
-		});
-	this.currentPlace = ko.observable(this.placeList()[0]);
-	console.log(this.placeList());
-};
-
-	function startApp() {
-	    ko.applyBindings(new ViewModel());
-	}
-}
 
 // when a marker is clicked on it populates that Infowindow and uses google places getDetails to get the places details.
 function populateInfoWindow(marker, infowindow) {
@@ -169,3 +148,9 @@ function hideMarkers(markers) {
 	}
 	$('#list li').remove();
 }
+
+function AppViewModel(markers) {
+ this.title = markers.title;
+ }
+ // Activates knockout.js
+ ko.applyBindings(new AppViewModel());

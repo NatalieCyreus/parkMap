@@ -63,7 +63,7 @@ var styles = [
 "elementType": "geometry",
 "stylers": [
 {
- "color": "#98FB98"
+ "color": "#DAF7A6"
 }
 ]
 },
