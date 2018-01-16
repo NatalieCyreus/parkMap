@@ -9,13 +9,19 @@
       <div class="info-box">
         <h1>NEARBY PARKS</h1>
         <div>
-          <input id="searchInAreaText" data-bind="value: areaInput" type="text" placeholder="Enter your favorite area!">
+          <input id="searchInAreaText" type="text" placeholder="Enter your favorite area!">
           <input id="searchInArea" type="button" value="Search">
+					<input id="searchInArea" type="button" value="resetSearch">
         </div>
         <div>
-          <h2>Results</h2>
-          <ul data-bind="foreach: placeList">
-          <li data-bind="text: name" id="list"></li>
+					<div>
+          <h4 class="inline">Results</h4>
+					<h2 class="inline" id="resultNr" type="text" data-bind="text: arrayLength"></h2>
+				</div>
+						<input id="filter" type="text" placeholder="filter through result" data-bind="textInput: searchTerm, valueUpdate: 'afterkeydown'">
+          	<ul data-bind="foreach: filteredList" id="resultList">
+          	<li data-bind="text: name, click: bounce" id="list"></li>
+				</ul>
           </div>
         </div>
       </div>

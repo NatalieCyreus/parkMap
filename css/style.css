@@ -2,7 +2,7 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  
+
 }
 
 .container {
@@ -32,13 +32,18 @@ html, body {
   text-align: left;
   width: 285px;
 }
-#searchInAreaText {
+#searchInAreaText, #filter {
   width: 200px;
   height: 30px;
 }
 
+.inline {
+  display: inline;
+  line-height: 60px;
+}
+
 #resultList {
-  width: 230px;
+  width: 260px;
   height: 500px;
   border-radius: 5px;
   border: 8px solid #F7F6F7;
@@ -48,9 +53,19 @@ html, body {
 
 ul {
   list-style-type: none;
+  padding-left: 0px;
+
 }
 li {
   font-size: 14px;
   text-transform: uppercase;
   font-weight: bold;
+}
+#list {
+  cursor: pointer;
+  border-bottom: 1px solid #6B8E23;
+}
+
+#list:hover {
+    background-color: #6B8E23;
 }

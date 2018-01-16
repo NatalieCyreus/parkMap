@@ -71,7 +71,7 @@ function getPlaceArray(results, status) {
 		for (var i=0; i < results.length; i++) {
 			locationArray.push(results[i]);
 		}
-		console.log(locationArray);
+		//console.log(locationArray);
 		startApp();
 	}
 }
@@ -81,11 +81,9 @@ var Place = function(data) {
 	this.name = data.name;
 	this.position = data.geometry.location;
 	this.id = data.place_id;
+	this.visible = ko.observable(true);
 
-	this.infoWindow = new google.maps.InfoWindow({
-		content: self.name });
-
-		this.marker = new google.maps.Marker({
+	this.marker = new google.maps.Marker({
 			map: map,
 			position: this.position,
 			title: this.name,
@@ -94,36 +92,81 @@ var Place = function(data) {
 			id: this.id
 		});
 
+
+		this.bounce = function(place) {
+        google.maps.event.trigger(this.marker, 'click');
+				if (this.marker.getAnimation() !== null) {
+					this.marker.setAnimation(null);
+				} else {
+					this.marker.setAnimation(google.maps.Animation.DROP);
+					setTimeout(function() {
+	            self.marker.setAnimation(null);
+	        }, 700);
+				}
+    };
+
 		this.marker.addListener('click', function() {
-			populateInfoWindow(this, largeInfowindow);
+				populateInfoWindow(this, largeInfowindow)
+		})
+
+		this.marker.addListener('click', function() {
+				populateInfoWindow(this, largeInfowindow)
 		});
+
 		this.marker.addListener('mouseover', function() {
 			this.setIcon(treeIconYellow);
 		});
 		this.marker.addListener('mouseout', function() {
 			this.setIcon(defaultIcon);
 		});
+
 };
+
 
 function ViewModel() {
 		var self = this;
+		//self.arrayLength = ko.observable("");
+		self.arrayLength = locationArray.length;
+		//Search filter list.
+		this.searchTerm = ko.observable("");
+		//Empty KO observable array.
 		this.placeList = ko.observableArray([]);
+		//Push locationArray items into KO placeList array.
 		locationArray.forEach(function(place){
 			var newPlace = new Place(place);
 			//console.log(newPlace);
 			self.placeList.push(newPlace);
 		});
-	this.currentPlace = ko.observable(this.placeList()[0]);
-	console.log(this.placeList());
+
+		//Displayes the list with a filter search function.
+		this.filteredList = ko.computed(function() {
+			var filter = self.searchTerm().toLowerCase();
+			if (!filter) {
+            self.placeList().forEach(function(newPlace) {
+                newPlace.visible(true);
+            });
+            return self.placeList();
+        } else {
+            return ko.utils.arrayFilter(self.placeList(), function(newPlace) {
+                var string = newPlace.name.toLowerCase();
+                var result = (string.search(filter) >= 0);
+                newPlace.visible(result);
+                return result;
+            });
+        }
+    }, self);
+
 };
 
+//This starts the app when API result is done.
 	function startApp() {
-	    ko.applyBindings(new ViewModel());
+			ko.applyBindings(new ViewModel())
 	}
 }
 
 // when a marker is clicked on it populates that Infowindow and uses google places getDetails to get the places details.
 function populateInfoWindow(marker, infowindow) {
+
 	var service = new google.maps.places.PlacesService(map);
 	service.getDetails({
 		placeId: marker.id
@@ -168,4 +211,8 @@ function hideMarkers(markers) {
 		markers[i].setMap(null);
 	}
 	$('#list li').remove();
+}
+
+function resetSearch() {
+	initMap();
 }
