@@ -4,7 +4,7 @@ This application shows parks in a specific area. Displayed on a map using Google
 I build the app with HTML, JavaScript, CSS, KnockOut framework and jQuery.
 
 ## Run App 
-- Here is the project folder. Download or clone the files. 
+- [Here](https://github.com/NatalieCyreus/parkMap) is the project folder. Download or clone the files. 
 - Unzip the folder and run index.html file to open it in a browser. 
 ## Resources
 
