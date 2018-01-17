@@ -57,7 +57,7 @@ function initMap() {
 				map.setZoom(15);
 				findPlaceInArea();
 			} else {
-				window.alert('It seems to be a problem with google API.')
+				window.alert('It seems to be a problem with google API.');
 			}
 		});
 		//}
@@ -122,11 +122,11 @@ function initMap() {
 		};
 
 		this.marker.addListener('click', function() {
-			populateInfoWindow(this, largeInfowindow)
-		})
+			populateInfoWindow(this, largeInfowindow);
+		});
 
 		this.marker.addListener('click', function() {
-			populateInfoWindow(this, largeInfowindow)
+			populateInfoWindow(this, largeInfowindow);
 		});
 
 		this.marker.addListener('mouseover', function() {
@@ -170,13 +170,13 @@ function initMap() {
 			}
 		}, self);
 
-	};
+	}
 
 	//This starts the app when API result is done.
 	function startApp() {
-		ko.applyBindings(new ViewModel())
+		ko.applyBindings(new ViewModel());
 	}
-};
+}
 
 // when a marker is clicked on it populates that Infowindow and uses google places getDetails to get the places details.
 function populateInfoWindow(marker, infowindow) {

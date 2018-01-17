@@ -13,3 +13,4 @@ I build the app with HTML, JavaScript, CSS, KnockOut framework and jQuery.
 - [jQuery](https://jquery.com/)
 - [Google map API](https://developers.google.com/maps/documentation/javascript/tutorial)
 - [openweathermap.org](http://openweathermap.org/)
+- [jshint](http://jshint.com/)
