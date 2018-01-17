@@ -4,6 +4,7 @@ var markers = ko.observableArray([]);
 var locationArray = [];
 var address;
 var addressLatLng;
+var currentWeather;
 //Styles the markers.
 var defaultIcon = "images/treeIcon.png";
 var treeIconYellow = "images/treeIconYellow.png";
@@ -27,33 +28,34 @@ function initMap() {
 	var zoomAutocomplete = new google.maps.places.Autocomplete(
 		document.getElementById('searchInAreaText'));
 	zoomAutocomplete.bindTo('bounds', map);
+	zoomToArea();
 
-
-	document.getElementById('searchInArea').addEventListener('click', function() {
+	/*document.getElementById('searchInArea').addEventListener('click', function() {
 		zoomToArea();
 	});
+	*/
 // Use google smart search and zoom into input location and invoke findPlaceInArea funtion.
 	function zoomToArea() {
 		var geocoder = new google.maps.Geocoder();
-		address = document.getElementById('searchInAreaText').value;
+		//address = document.getElementById('searchInAreaText').value;
+		address = 'Tribeca, New York, NY, USA';
 		if (address == '') {
 			window.alert('add an address!');
 		} else {
-			hideMarkers(markers);
+			//hideMarkers(markers);
 			geocoder.geocode({
 				address: address
 			}, function(results, status) {
 				if (status == google.maps.GeocoderStatus.OK) {
 					map.setCenter(results[0].geometry.location);
-					document.getElementById('searchInAreaText').value = results[0].formatted_address;
+					//document.getElementById('searchInAreaText').value = results[0].formatted_address;
 					addressLatLng = results[0].geometry.location;
 					map.setZoom(15);
 					findPlaceInArea();
-				} else {
-					window.alert('Could not find location!')
 				}
 			});
 		}
+
 	}
 
   // Gets back result JSON from google place Api. Find parks within 1000 meters of input adress. Invoke callback funtion.
@@ -71,7 +73,6 @@ function getPlaceArray(results, status) {
 		for (var i=0; i < results.length; i++) {
 			locationArray.push(results[i]);
 		}
-		//console.log(locationArray);
 		startApp();
 	}
 }
@@ -82,7 +83,7 @@ var Place = function(data) {
 	this.position = data.geometry.location;
 	this.id = data.place_id;
 	this.visible = ko.observable(true);
-
+	this.currentWeather;
 	this.marker = new google.maps.Marker({
 			map: map,
 			position: this.position,
@@ -92,17 +93,31 @@ var Place = function(data) {
 			id: this.id
 		});
 
+		var weatherAPIkey = 'fe50b81890652f2dd2f26fa41083e299';
+		var weatherURL = 'http://api.openweathermap.org/data/2.5/weather?lat=40.716269&lon=-74.008632&units=metric&APPID=' + weatherAPIkey;
+
+			$.getJSON(weatherURL).done(function(data) {
+				var weatherResult = data.weather[0].description;
+				console.log(weatherResult)
+				this.currentWeather = weatherResult;
+			}).fail(function() {
+	        alert("There was an error with the weather API call. Try again later.");
+	    });
+
+
+
+		this.showMarker = ko.computed(function() {
+        if (this.visible() === true) {
+            this.marker.setMap(map);
+        } else {
+            this.marker.setMap(null);
+        }
+        return true;
+    }, this);
 
 		this.bounce = function(place) {
         google.maps.event.trigger(this.marker, 'click');
-				if (this.marker.getAnimation() !== null) {
-					this.marker.setAnimation(null);
-				} else {
 					this.marker.setAnimation(google.maps.Animation.DROP);
-					setTimeout(function() {
-	            self.marker.setAnimation(null);
-	        }, 700);
-				}
     };
 
 		this.marker.addListener('click', function() {
@@ -162,7 +177,7 @@ function ViewModel() {
 	function startApp() {
 			ko.applyBindings(new ViewModel())
 	}
-}
+};
 
 // when a marker is clicked on it populates that Infowindow and uses google places getDetails to get the places details.
 function populateInfoWindow(marker, infowindow) {
