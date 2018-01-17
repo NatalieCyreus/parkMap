@@ -2,63 +2,77 @@ var map;
 //blank array for all listing markers.
 var markers = ko.observableArray([]);
 var locationArray = [];
-var address;
+//var address;
+var address = 'Tribeca, New York, NY, USA';
 var addressLatLng;
-var currentWeather;
+var currentWeather = "";
+var displayCurrentweather = "";
 //Styles the markers.
 var defaultIcon = "images/treeIcon.png";
 var treeIconYellow = "images/treeIconYellow.png";
 
 // Loads the map
 function initMap() {
-	var newYork = new google.maps.LatLng(40.7413549, -73.9980244);
+	//var newYork = new google.maps.LatLng(40.7413549, -73.9980244);
 	//Create the map and set a start center position.
 	map = new google.maps.Map(document.getElementById('map'), {
-		center: {
-			lat: 40.7413549,
-			lng: -73.9980244
-		},
-		zoom: 13,
+		//center: {
+			//lat: 40.7413549,
+			//lng: -73.9980244
+		//},
+		//zoom: 13,
 		styles: styles,
 		mapTypeControl: false
 	});
 
 	var largeInfowindow = new google.maps.InfoWindow();
 
-	var zoomAutocomplete = new google.maps.places.Autocomplete(
-		document.getElementById('searchInAreaText'));
-	zoomAutocomplete.bindTo('bounds', map);
+	//var zoomAutocomplete = new google.maps.places.Autocomplete(
+	//document.getElementById('searchInAreaText'));
+	//zoomAutocomplete.bindTo('bounds', map);
 	zoomToArea();
 
+	//The code under is to make the APP work with input location from user.
 	/*document.getElementById('searchInArea').addEventListener('click', function() {
 		zoomToArea();
 	});
 	*/
-// Use google smart search and zoom into input location and invoke findPlaceInArea funtion.
+	// IF INPUT: zoom into input location and invoke findPlaceInArea funtion.
+	//ELSE: The address is set to a string address in zoomToAreaFunction.
 	function zoomToArea() {
 		var geocoder = new google.maps.Geocoder();
 		//address = document.getElementById('searchInAreaText').value;
 		address = 'Tribeca, New York, NY, USA';
-		if (address == '') {
-			window.alert('add an address!');
-		} else {
-			//hideMarkers(markers);
-			geocoder.geocode({
-				address: address
-			}, function(results, status) {
-				if (status == google.maps.GeocoderStatus.OK) {
-					map.setCenter(results[0].geometry.location);
-					//document.getElementById('searchInAreaText').value = results[0].formatted_address;
-					addressLatLng = results[0].geometry.location;
-					map.setZoom(15);
-					findPlaceInArea();
-				}
-			});
-		}
+		//if (address == '') {
+		//window.alert('add an address!');
+		//} else {
+		//hideMarkers(markers);
+		geocoder.geocode({
+			address: address
+		}, function(results, status) {
+			if (status == google.maps.GeocoderStatus.OK) {
+				map.setCenter(results[0].geometry.location);
+				//document.getElementById('searchInAreaText').value = results[0].formatted_address;
+				addressLatLng = results[0].geometry.location;
+				map.setZoom(15);
+				findPlaceInArea();
+			} else {
+				window.alert('It seems to be a problem with google API.')
+			}
+		});
+		//}
+		var weatherAPIkey = 'fe50b81890652f2dd2f26fa41083e299';
+		var weatherURL = 'http://api.openweathermap.org/data/2.5/weather?lat=40.716269&lon=-74.008632&units=metric&APPID=' + weatherAPIkey;
+		$.getJSON(weatherURL).done(function(data) {
+			currentWeather = data.weather[0].description;
+			displayCurrentweather = "Current weather: " + currentWeather;
+		}).fail(function() {
+			alert("There was an error with the weather API call. Try again later.");
+		});
 
 	}
 
-  // Gets back result JSON from google place Api. Find parks within 1000 meters of input adress. Invoke callback funtion.
+	// Gets back result JSON from google place Api. Find parks within 1000 meters of input adress. Invoke callback funtion.
 	function findPlaceInArea() {
 		var service = new google.maps.places.PlacesService(map);
 		service.nearbySearch({
@@ -68,23 +82,23 @@ function initMap() {
 		}, getPlaceArray);
 	}
 
-function getPlaceArray(results, status) {
-	if (status === google.maps.places.PlacesServiceStatus.OK) {
-		for (var i=0; i < results.length; i++) {
-			locationArray.push(results[i]);
+	function getPlaceArray(results, status) {
+		if (status === google.maps.places.PlacesServiceStatus.OK) {
+			for (var i = 0; i < results.length; i++) {
+				locationArray.push(results[i]);
+			}
+			startApp();
 		}
-		startApp();
 	}
-}
 
-var Place = function(data) {
-	self = this;
-	this.name = data.name;
-	this.position = data.geometry.location;
-	this.id = data.place_id;
-	this.visible = ko.observable(true);
-	this.currentWeather;
-	this.marker = new google.maps.Marker({
+	var Place = function(data) {
+		self = this;
+		this.name = data.name;
+		this.position = data.geometry.location;
+		this.id = data.place_id;
+		this.visible = ko.observable(true);
+		this.currentWeather = currentWeather;
+		this.marker = new google.maps.Marker({
 			map: map,
 			position: this.position,
 			title: this.name,
@@ -93,39 +107,26 @@ var Place = function(data) {
 			id: this.id
 		});
 
-		var weatherAPIkey = 'fe50b81890652f2dd2f26fa41083e299';
-		var weatherURL = 'http://api.openweathermap.org/data/2.5/weather?lat=40.716269&lon=-74.008632&units=metric&APPID=' + weatherAPIkey;
-
-			$.getJSON(weatherURL).done(function(data) {
-				var weatherResult = data.weather[0].description;
-				console.log(weatherResult)
-				this.currentWeather = weatherResult;
-			}).fail(function() {
-	        alert("There was an error with the weather API call. Try again later.");
-	    });
-
-
-
 		this.showMarker = ko.computed(function() {
-        if (this.visible() === true) {
-            this.marker.setMap(map);
-        } else {
-            this.marker.setMap(null);
-        }
-        return true;
-    }, this);
+			if (this.visible() === true) {
+				this.marker.setMap(map);
+			} else {
+				this.marker.setMap(null);
+			}
+			return true;
+		}, this);
 
 		this.bounce = function(place) {
-        google.maps.event.trigger(this.marker, 'click');
-					this.marker.setAnimation(google.maps.Animation.DROP);
-    };
+			google.maps.event.trigger(this.marker, 'click');
+			this.marker.setAnimation(google.maps.Animation.DROP);
+		};
 
 		this.marker.addListener('click', function() {
-				populateInfoWindow(this, largeInfowindow)
+			populateInfoWindow(this, largeInfowindow)
 		})
 
 		this.marker.addListener('click', function() {
-				populateInfoWindow(this, largeInfowindow)
+			populateInfoWindow(this, largeInfowindow)
 		});
 
 		this.marker.addListener('mouseover', function() {
@@ -135,47 +136,45 @@ var Place = function(data) {
 			this.setIcon(defaultIcon);
 		});
 
-};
+	};
 
-
-function ViewModel() {
+	function ViewModel() {
 		var self = this;
 		//self.arrayLength = ko.observable("");
 		self.arrayLength = locationArray.length;
 		//Search filter list.
-		this.searchTerm = ko.observable("");
+		this.searchItem = ko.observable("");
 		//Empty KO observable array.
 		this.placeList = ko.observableArray([]);
 		//Push locationArray items into KO placeList array.
-		locationArray.forEach(function(place){
+		locationArray.forEach(function(place) {
 			var newPlace = new Place(place);
-			//console.log(newPlace);
 			self.placeList.push(newPlace);
 		});
 
-		//Displayes the list with a filter search function.
+		//Filter the listItem.
 		this.filteredList = ko.computed(function() {
-			var filter = self.searchTerm().toLowerCase();
+			var filter = self.searchItem().toLowerCase();
 			if (!filter) {
-            self.placeList().forEach(function(newPlace) {
-                newPlace.visible(true);
-            });
-            return self.placeList();
-        } else {
-            return ko.utils.arrayFilter(self.placeList(), function(newPlace) {
-                var string = newPlace.name.toLowerCase();
-                var result = (string.search(filter) >= 0);
-                newPlace.visible(result);
-                return result;
-            });
-        }
-    }, self);
+				self.placeList().forEach(function(newPlace) {
+					newPlace.visible(true);
+				});
+				return self.placeList();
+			} else {
+				return ko.utils.arrayFilter(self.placeList(), function(newPlace) {
+					var string = newPlace.name.toLowerCase();
+					var result = (string.search(filter) >= 0);
+					newPlace.visible(result);
+					return result;
+				});
+			}
+		}, self);
 
-};
+	};
 
-//This starts the app when API result is done.
+	//This starts the app when API result is done.
 	function startApp() {
-			ko.applyBindings(new ViewModel())
+		ko.applyBindings(new ViewModel())
 	}
 };
 
@@ -199,6 +198,9 @@ function populateInfoWindow(marker, infowindow) {
 			if (place.name) {
 				innerHTML += '<strong>' + place.name + '</strong>';
 			}
+			if (currentWeather.length > 0) {
+				innerHTML += '<br><strong>' + currentWeather + '</strong>';
+			}
 			if (place.formatted_address) {
 				innerHTML += '<br>' + place.formatted_address;
 			}
@@ -220,14 +222,11 @@ function populateInfoWindow(marker, infowindow) {
 	});
 }
 
-// this is evoked if a new input is search to remove the markers by emptying the markers array and removes the list in the Dom.
-function hideMarkers(markers) {
+// hideMarkers should be uncomment if user INPUT is used to run app. this is evoked if a new input is search to remove the markers by emptying the markers array and removes the list in the Dom.
+/*function hideMarkers(markers) {
 	for (var i = 0; i < markers.length; i++) {
 		markers[i].setMap(null);
 	}
 	$('#list li').remove();
 }
-
-function resetSearch() {
-	initMap();
-}
+*/

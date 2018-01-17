@@ -39,7 +39,15 @@ html, body {
 
 .inline {
   display: inline;
-  line-height: 60px;
+}
+
+h4 {
+  line-height: normal;
+}
+#weather {
+  font-size: 9px;
+  color: grey;
+  line-height: normal;
 }
 
 #resultList {
