@@ -2,57 +2,37 @@ var map;
 //blank array for all listing markers.
 var markers = ko.observableArray([]);
 var locationArray = [];
-//var address;
 var address = 'Tribeca, New York, NY, USA';
 var addressLatLng;
+//Weather API global variables.
 var currentWeather = "";
 var displayCurrentweather = "";
+// Foursquare global variable.
+var clientID = '';
+var clientSecret = '';
+var checkIn = '';
 //Styles the markers.
 var defaultIcon = "images/treeIcon.png";
 var treeIconYellow = "images/treeIconYellow.png";
 
 // Loads the map
 function initMap() {
-	//var newYork = new google.maps.LatLng(40.7413549, -73.9980244);
-	//Create the map and set a start center position.
 	map = new google.maps.Map(document.getElementById('map'), {
-		//center: {
-			//lat: 40.7413549,
-			//lng: -73.9980244
-		//},
-		//zoom: 13,
 		styles: styles,
 		mapTypeControl: false
 	});
 
 	var largeInfowindow = new google.maps.InfoWindow();
-
-	//var zoomAutocomplete = new google.maps.places.Autocomplete(
-	//document.getElementById('searchInAreaText'));
-	//zoomAutocomplete.bindTo('bounds', map);
 	zoomToArea();
 
-	//The code under is to make the APP work with input location from user.
-	/*document.getElementById('searchInArea').addEventListener('click', function() {
-		zoomToArea();
-	});
-	*/
-	// IF INPUT: zoom into input location and invoke findPlaceInArea funtion.
-	//ELSE: The address is set to a string address in zoomToAreaFunction.
 	function zoomToArea() {
 		var geocoder = new google.maps.Geocoder();
-		//address = document.getElementById('searchInAreaText').value;
 		address = 'Tribeca, New York, NY, USA';
-		//if (address == '') {
-		//window.alert('add an address!');
-		//} else {
-		//hideMarkers(markers);
 		geocoder.geocode({
 			address: address
 		}, function(results, status) {
 			if (status == google.maps.GeocoderStatus.OK) {
 				map.setCenter(results[0].geometry.location);
-				//document.getElementById('searchInAreaText').value = results[0].formatted_address;
 				addressLatLng = results[0].geometry.location;
 				map.setZoom(15);
 				findPlaceInArea();
@@ -60,7 +40,8 @@ function initMap() {
 				window.alert('It seems to be a problem with google API.');
 			}
 		});
-		//}
+
+//Weather API CALL
 		var weatherAPIkey = 'fe50b81890652f2dd2f26fa41083e299';
 		var weatherURL = 'http://api.openweathermap.org/data/2.5/weather?lat=40.716269&lon=-74.008632&units=metric&APPID=' + weatherAPIkey;
 		$.getJSON(weatherURL).done(function(data) {
@@ -69,7 +50,6 @@ function initMap() {
 		}).fail(function() {
 			alert("There was an error with the weather API call. Try again later.");
 		});
-
 	}
 
 	// Gets back result JSON from google place Api. Find parks within 1000 meters of input adress. Invoke callback funtion.
@@ -88,6 +68,8 @@ function initMap() {
 				locationArray.push(results[i]);
 			}
 			startApp();
+		} else {
+			window.alert("It seems to be a problem with the google API");
 		}
 	}
 
@@ -95,9 +77,13 @@ function initMap() {
 		self = this;
 		this.name = data.name;
 		this.position = data.geometry.location;
+		this.lng = data.geometry.viewport.b.b;
+		this.lat = data.geometry.viewport.f.b;
 		this.id = data.place_id;
+		this.checkIn = checkIn;
 		this.visible = ko.observable(true);
 		this.currentWeather = currentWeather;
+
 		this.marker = new google.maps.Marker({
 			map: map,
 			position: this.position,
@@ -106,6 +92,16 @@ function initMap() {
 			icon: defaultIcon,
 			id: this.id
 		});
+
+		//foursquare API CALL
+			var foursquareURL = 'https://api.foursquare.com/v2/venues/search?ll=' + data.geometry.viewport.f.b + ',' + data.geometry.viewport.b.b + '&client_id=' + clientID + '&client_secret=' + clientSecret + '&v=20170101 ' + '&query=' + data.name;
+
+			$.getJSON(foursquareURL).done(function(data) {
+				checkIn = data.response.venues[0].stats.checkinsCount;
+				console.log(checkIn)
+			}).fail(function() {
+					alert("There was an error with the Foursquare API call!");
+			});
 
 		this.showMarker = ko.computed(function() {
 			if (this.visible() === true) {
@@ -121,26 +117,18 @@ function initMap() {
 			this.marker.setAnimation(google.maps.Animation.DROP);
 		};
 
-		this.marker.addListener('click', function() {
-			populateInfoWindow(this, largeInfowindow);
-		});
 
 		this.marker.addListener('click', function() {
-			populateInfoWindow(this, largeInfowindow);
-		});
-
-		this.marker.addListener('mouseover', function() {
 			this.setIcon(treeIconYellow);
-		});
-		this.marker.addListener('mouseout', function() {
-			this.setIcon(defaultIcon);
+			populateInfoWindow(this, largeInfowindow);
 		});
 
 	};
 
 	function ViewModel() {
+		clientID = 'TTSUU4KIIOL2HILPY33444SNIIDYQRGVGX5XTFVZXV5T5FDT';
+		clientSecret = '5FD5J51HFV5W3XBD23TC4DDTL2A315KHIZHJQHECE0DYEW5C';
 		var self = this;
-		//self.arrayLength = ko.observable("");
 		self.arrayLength = locationArray.length;
 		//Search filter list.
 		this.searchItem = ko.observable("");
@@ -150,6 +138,7 @@ function initMap() {
 		locationArray.forEach(function(place) {
 			var newPlace = new Place(place);
 			self.placeList.push(newPlace);
+				console.log(newPlace)
 		});
 
 		//Filter the listItem.
@@ -196,19 +185,19 @@ function populateInfoWindow(marker, infowindow) {
 				}) + '"><br>';
 			}
 			if (place.name) {
-				innerHTML += '<strong>' + place.name + '</strong>';
+				innerHTML += '<h1>' + place.name + '</h1>';
 			}
 			if (currentWeather.length > 0) {
-				innerHTML += '<br><strong>' + currentWeather + '</strong>';
+				innerHTML += '<h3>' + currentWeather + '</h3>';
 			}
 			if (place.formatted_address) {
-				innerHTML += '<br>' + place.formatted_address;
+				innerHTML += '<h3>' + place.formatted_address + '</h3>';
 			}
 			if (place.website) {
-				innerHTML += '<br><a target="_blank" href="' + place.website + '">Website</a>';
+				innerHTML += '<a target="_blank" href="' + place.website + '">Website</a>';
 			}
 			if (place.rating) {
-				innerHTML += '<br><strong>Rating:</strong>' + place.rating + '<strong> /5</strong>';
+				innerHTML += '<h3>Rating:</strong>' + place.rating + '<strong> /5</h3>';
 			}
 
 			innerHTML += '</div>';
@@ -218,15 +207,8 @@ function populateInfoWindow(marker, infowindow) {
 			infowindow.addListener('closeclick', function() {
 				infowindow.marker = null;
 			});
+		} else {
+			window.alert("It seems to be a problem with Google API");
 		}
 	});
 }
-
-// hideMarkers should be uncomment if user INPUT is used to run app. this is evoked if a new input is search to remove the markers by emptying the markers array and removes the list in the Dom.
-/*function hideMarkers(markers) {
-	for (var i = 0; i < markers.length; i++) {
-		markers[i].setMap(null);
-	}
-	$('#list li').remove();
-}
-*/

@@ -1,42 +1,41 @@
 <html>
 	<head>
+		<meta charset="utf-8">
+		<title>parkMap</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="Natalie Cyreus Udacity Project">
+		<meta name="keywords" content="google-map, parks, education">
+		<meta name="author" content="Natalie Cyreus">
 		<link rel="stylesheet" href="css/style.css">
 	</head>
 	<body>
 		<div class="container">
-      <div class="info-box">
-			<!--
-        <h1>NEARBY PARKS</h1>
-        <div>
-          <input id="searchInAreaText" type="text" placeholder="Enter your favorite area!">
-          <input id="searchInArea" type="button" value="Search">
-					<input id="searchInArea" type="button" value="resetSearch">
-        </div>
-			-->
-        <div>
-					<div>
-					<h2 class="inline" id="resultNr" type="text" data-bind="text: arrayLength"></h2><h2 class="inline"> Park results in </h2>
+			<div class="info-box">
+				<div>
+					<h1 class="inline" id="resultNr" type="text" data-bind="text: arrayLength">
+						</h2>
+						<h2 class="inline">
+						Park results in
+					</h1>
 					<h2 data-bind="text: address"></h2>
 					<h4 class="inline" data-bind="text: displayCurrentweather"></h4>
-					<a id="weather" target="_blank" href="http://openweathermap.org/"><p>by openWeathermap</p></a>
+					<a id="weather" target="_blank" href="http://openweathermap.org/">
+						<p>by openWeathermap</p>
+					</a>
 				</div>
-						<input id="filter" type="text" placeholder="filter through result" data-bind="textInput: searchItem, valueUpdate: 'afterkeydown'">
-          	<ul data-bind="foreach: filteredList" id="resultList">
-          	<li data-bind="text: name, click: bounce" id="list"></li>
+				<input id="filter" type="text" placeholder="filter through result" data-bind="textInput: searchItem, valueUpdate: 'afterkeydown'">
+				<ul data-bind="foreach: filteredList" id="resultList">
+					<li data-bind="text: name, click: bounce" id="list"></li>
 				</ul>
-          </div>
-        </div>
-      </div>
+			</div>
+			<div id="map"></div>
 		</div>
-		<div id="map"></div>
 		<script src="js/mapStyle.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="js/knockout.js"></script>
+		<script src="js/main.js"></script>
 		<script async defer
 			src=
 			"https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&&key=AIzaSyCgHys6T215R_36DgCvnHIjl9Cfya3U5SM&v=3&callback=initMap"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="js/knockout.js"></script>
-		<script src="js/main.js"></script>
-
-
 	</body>
 </html>

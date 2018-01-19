@@ -1,79 +1,89 @@
 html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-
+     height: 100%;
+     margin: 0;
+     padding: 0;
 }
-
-.container {
-  height: 100%;
+ .container {
+     height: 100%;
 }
-#map {
-  bottom:0px;
-  height: 100%;
-  left: 322px;
-  position: absolute;
-  right: 0px;
+ #map {
+     order: 2;
+     flex-grow: 4;
+     bottom:0px;
+     height: 100%;
+     left: 322px;
+     position: absolute;
+     right: 0px;
 }
-
-#searchInArea {
-  color: #ffffff;
-  background-color: #000000;
-  width: 80px;
-  height: 30px;
+ #searchInArea {
+     color: #ffffff;
+     background-color: #000000;
+     width: 80px;
+     height: 30px;
 }
-.info-box {
-  background: #C9D7BD;
-  border: 8px solid #F7F6F7;
-  border-radius: 3px;
-  height: 100%;
-  line-height: 35px;
-  padding: 10px 10px 30px 10px;
-  text-align: left;
-  width: 285px;
+ .info-box {
+     order: 1;
+     flex-grow: 1;
+     background: #C9D7BD;
+     border: 8px solid #F7F6F7;
+     border-radius: 3px;
+     height: 100%;
+     line-height: 35px;
+     padding: 10px 10px 30px 10px;
+     text-align: left;
+     width: 285px;
 }
-#searchInAreaText, #filter {
-  width: 200px;
-  height: 30px;
+ #searchInAreaText, #filter {
+     width: 200px;
+     height: 30px;
 }
-
-.inline {
-  display: inline;
+ .inline {
+     display: inline;
 }
-
-h4 {
-  line-height: normal;
+ h4 {
+     line-height: normal;
 }
-#weather {
-  font-size: 9px;
-  color: grey;
-  line-height: normal;
+ #weather {
+     font-size: 9px;
+     color: grey;
+     line-height: normal;
 }
-
-#resultList {
-  width: 260px;
-  height: 500px;
-  border-radius: 5px;
-  border: 8px solid #F7F6F7;
-  overflow: scroll;
-  background-color: #F1F0EB;
+ #resultList {
+     width: 260px;
+     height: 500px;
+     border-radius: 5px;
+     border: 8px solid #F7F6F7;
+     overflow: scroll;
+     background-color: #F1F0EB;
 }
-
-ul {
-  list-style-type: none;
-  padding-left: 0px;
-
+ ul {
+     list-style-type: none;
+     padding-left: 0px;
 }
-li {
-  font-size: 14px;
-  text-transform: uppercase;
-  font-weight: bold;
+ li {
+     font-size: 14px;
+     text-transform: uppercase;
+     font-weight: bold;
 }
-#list {
-  cursor: pointer;
-  border-bottom: 1px solid #6B8E23;
+ #list {
+     cursor: pointer;
+     border-bottom: 1px solid #6B8E23;
 }
-
-#list:hover {
-    background-color: #6B8E23;
+ #list:hover {
+     background-color: #6B8E23;
 }
+ @media only screen and (max-device-width : 700px), only screen and (max-width : 700px){
+     .info-box {
+         width: 92%;
+         height: 40%;
+         overflow: scroll;
+    }
+     #map {
+         bottom:0px;
+         height: 50%;
+         left: 0px;
+         position: absolute;
+         right: 0px;
+    }
+}
+ 
