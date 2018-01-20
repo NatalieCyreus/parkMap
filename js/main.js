@@ -1,6 +1,4 @@
 var map;
-//blank array for all listing markers.
-var markers = ko.observableArray([]);
 var locationArray = [];
 var address = 'Tribeca, New York, NY, USA';
 var addressLatLng;
@@ -11,6 +9,7 @@ var displayCurrentweather = "";
 var clientID = '';
 var clientSecret = '';
 var checkIn = '';
+var placeList = ko.observableArray([]);
 //Styles the markers.
 var defaultIcon = "images/treeIcon.png";
 var treeIconYellow = "images/treeIconYellow.png";
@@ -80,28 +79,19 @@ function initMap() {
 		this.lng = data.geometry.viewport.b.b;
 		this.lat = data.geometry.viewport.f.b;
 		this.id = data.place_id;
-		this.checkIn = checkIn;
+		this.checkIn = data.checkIn;
 		this.visible = ko.observable(true);
 		this.currentWeather = currentWeather;
-
+		this.checkInList = 'Foursquare checkins: '+ this.checkIn;
+		var markeritle =  this.name + ' Checkins: ' + this.checkIn;
 		this.marker = new google.maps.Marker({
 			map: map,
 			position: this.position,
-			title: this.name,
+			title: markeritle,
 			animation: google.maps.Animation.DROP,
 			icon: defaultIcon,
 			id: this.id
 		});
-
-		//foursquare API CALL
-			var foursquareURL = 'https://api.foursquare.com/v2/venues/search?ll=' + data.geometry.viewport.f.b + ',' + data.geometry.viewport.b.b + '&client_id=' + clientID + '&client_secret=' + clientSecret + '&v=20170101 ' + '&query=' + data.name;
-
-			$.getJSON(foursquareURL).done(function(data) {
-				checkIn = data.response.venues[0].stats.checkinsCount;
-				console.log(checkIn)
-			}).fail(function() {
-					alert("There was an error with the Foursquare API call!");
-			});
 
 		this.showMarker = ko.computed(function() {
 			if (this.visible() === true) {
@@ -125,32 +115,46 @@ function initMap() {
 
 	};
 
-	function ViewModel() {
+	function callFoursquare(data) {
 		clientID = 'TTSUU4KIIOL2HILPY33444SNIIDYQRGVGX5XTFVZXV5T5FDT';
 		clientSecret = '5FD5J51HFV5W3XBD23TC4DDTL2A315KHIZHJQHECE0DYEW5C';
+
+		//foursquare API CALL
+		var foursquareURL = 'https://api.foursquare.com/v2/venues/search?ll=' + data.geometry.viewport.f.b + ',' + data.geometry.viewport.b.b + '&client_id=' + clientID + '&client_secret=' + clientSecret + '&v=20170101 ' + '&query=' + data.name;
+
+		$.getJSON(foursquareURL).done(function(foursquareResult) {
+				checkIn = foursquareResult.response.venues[0].stats.checkinsCount;
+				data.checkIn = checkIn;
+		}).fail(function() {
+			data.checkIn = 'not available';
+			var newPlace = new Place(data);
+			placeList.push(newPlace);
+		});
+	}
+
+	function ViewModel() {
 		var self = this;
 		self.arrayLength = locationArray.length;
 		//Search filter list.
 		this.searchItem = ko.observable("");
 		//Empty KO observable array.
-		this.placeList = ko.observableArray([]);
+		placeList = ko.observableArray([]);
 		//Push locationArray items into KO placeList array.
-		locationArray.forEach(function(place) {
-			var newPlace = new Place(place);
-			self.placeList.push(newPlace);
-				console.log(newPlace)
+		locationArray.forEach(function(data) {
+			callFoursquare(data);
 		});
+
 
 		//Filter the listItem.
 		this.filteredList = ko.computed(function() {
 			var filter = self.searchItem().toLowerCase();
 			if (!filter) {
-				self.placeList().forEach(function(newPlace) {
+				placeList().forEach(function(newPlace) {
 					newPlace.visible(true);
 				});
-				return self.placeList();
+				return placeList();
 			} else {
-				return ko.utils.arrayFilter(self.placeList(), function(newPlace) {
+				return ko.utils.arrayFilter(placeList(), function(newPlace) {
 					var string = newPlace.name.toLowerCase();
 					var result = (string.search(filter) >= 0);
 					newPlace.visible(result);
@@ -167,14 +171,17 @@ function initMap() {
 	}
 }
 
+
 // when a marker is clicked on it populates that Infowindow and uses google places getDetails to get the places details.
 function populateInfoWindow(marker, infowindow) {
-
 	var service = new google.maps.places.PlacesService(map);
+
 	service.getDetails({
 		placeId: marker.id
 	}, function(place, status) {
 		if (status === google.maps.places.PlacesServiceStatus.OK) {
+
+			console.log(place);
 			// Set the marker property on this infowindow so it isn't created again.
 			infowindow.marker = marker;
 			var innerHTML = '<div>';
@@ -185,19 +192,19 @@ function populateInfoWindow(marker, infowindow) {
 				}) + '"><br>';
 			}
 			if (place.name) {
-				innerHTML += '<h1>' + place.name + '</h1>';
+				innerHTML += '<p>' + place.name + '</p>';
 			}
 			if (currentWeather.length > 0) {
-				innerHTML += '<h3>' + currentWeather + '</h3>';
+				innerHTML += '<p>' + currentWeather + '</p>';
 			}
 			if (place.formatted_address) {
-				innerHTML += '<h3>' + place.formatted_address + '</h3>';
+				innerHTML += '<p>' + place.formatted_address + '</p>';
 			}
 			if (place.website) {
 				innerHTML += '<a target="_blank" href="' + place.website + '">Website</a>';
 			}
 			if (place.rating) {
-				innerHTML += '<h3>Rating:</strong>' + place.rating + '<strong> /5</h3>';
+				innerHTML += '<p>Rating:</strong>' + place.rating + '<strong></p>';
 			}
 
 			innerHTML += '</div>';
