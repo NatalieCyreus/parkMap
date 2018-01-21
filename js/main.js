@@ -125,6 +125,8 @@ function initMap() {
 		$.getJSON(foursquareURL).done(function(foursquareResult) {
 				checkIn = foursquareResult.response.venues[0].stats.checkinsCount;
 				data.checkIn = checkIn;
+				var newPlace = new Place(data);
+				placeList.push(newPlace);
 		}).fail(function() {
 			data.checkIn = 'not available';
 			var newPlace = new Place(data);
