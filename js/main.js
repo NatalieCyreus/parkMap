@@ -1,32 +1,33 @@
 var map;
 var locationArray = [];
-var address = 'Tribeca, New York, NY, USA';
+var address;
 var addressLatLng;
 //Weather API global variables.
+var contentHTML = "";
 var currentWeather = "";
 var displayCurrentweather = "";
 // Foursquare global variable.
 var clientID = '';
 var clientSecret = '';
-var checkIn = '';
 var placeList = ko.observableArray([]);
-//Styles the markers.
+// tree image as markers.
 var defaultIcon = "images/treeIcon.png";
-var treeIconYellow = "images/treeIconYellow.png";
 
-// Loads the map
 function initMap() {
 	map = new google.maps.Map(document.getElementById('map'), {
 		styles: styles,
 		mapTypeControl: false
 	});
 
-	var largeInfowindow = new google.maps.InfoWindow();
+	// One instance of infowindow is created and used in Places. This way only one infowindow can appear in the map.
+	InfoWindow = new google.maps.InfoWindow();
+
 	zoomToArea();
 
+	// Get location with google Geocoder.
 	function zoomToArea() {
 		var geocoder = new google.maps.Geocoder();
-		address = 'Tribeca, New York, NY, USA';
+		address = 'Stockholm, sweden';
 		geocoder.geocode({
 			address: address
 		}, function(results, status) {
@@ -38,56 +39,119 @@ function initMap() {
 			} else {
 				window.alert('It seems to be a problem with google API.');
 			}
+			getWeatherAPI(results[0]);
 		});
 
-//Weather API CALL
+	}
+
+	//Weather API to show the weather in adress area, uses lat lng from google geocode result.
+	function getWeatherAPI(results) {
 		var weatherAPIkey = 'fe50b81890652f2dd2f26fa41083e299';
-		var weatherURL = 'http://api.openweathermap.org/data/2.5/weather?lat=40.716269&lon=-74.008632&units=metric&APPID=' + weatherAPIkey;
-		$.getJSON(weatherURL).done(function(data) {
-			currentWeather = data.weather[0].description;
+		var locationLat = results.geometry.viewport.f.b;
+		var locationLng = results.geometry.viewport.b.b;
+		var weatherURL = 'http://api.openweathermap.org/data/2.5/weather?lat=' + locationLat + '&lon=' + locationLng + '&units=metric&APPID=' + weatherAPIkey;
+		$.getJSON(weatherURL).done(function(results) {
+			currentWeather = results.weather[0].description;
 			displayCurrentweather = "Current weather: " + currentWeather;
 		}).fail(function() {
 			alert("There was an error with the weather API call. Try again later.");
 		});
 	}
 
-	// Gets back result JSON from google place Api. Find parks within 1000 meters of input adress. Invoke callback funtion.
+	// Uses google geocoder result position to find parks within that area.
 	function findPlaceInArea() {
 		var service = new google.maps.places.PlacesService(map);
 		service.nearbySearch({
 			location: addressLatLng,
-			radius: 1000,
+			radius: 400,
 			type: ['park']
 		}, getPlaceArray);
 	}
 
+	// Takes the results from google places and push results to locationArray. Start foursquare search to add foursquare checkin to array.
 	function getPlaceArray(results, status) {
 		if (status === google.maps.places.PlacesServiceStatus.OK) {
+			//For loop to populate locationArray.
 			for (var i = 0; i < results.length; i++) {
 				locationArray.push(results[i]);
+				var locationObject = results[i];
+				getFourSquareAPI(locationObject, i);
 			}
-			startApp();
 		} else {
 			window.alert("It seems to be a problem with the google API");
 		}
 	}
+	// Get results from foursquare and creates foursquareCheckin to each locationArray place object.
+	function getFourSquareAPI(locationObject, locationObjectIndex) {
+		clientID = 'TTSUU4KIIOL2HILPY33444SNIIDYQRGVGX5XTFVZXV5T5FDT';
+		clientSecret = '5FD5J51HFV5W3XBD23TC4DDTL2A315KHIZHJQHECE0DYEW5C';
+		var foursquareResultArray = [];
+		var foursquareURL = 'https://api.foursquare.com/v2/venues/search?ll=' + locationObject.geometry.viewport.f.f + ',' + locationObject.geometry.viewport.b.f + '&client_id=' + clientID + '&client_secret=' + clientSecret + '&v=20170101 ' + '&query=' + locationObject.name;
+		// Foursquare Api call.
+		var parameter = {
+			index: locationObjectIndex
+		};
+		$.getJSON(foursquareURL, parameter).done(function(foursquareResult) {
+				var fSresult;
+				if (foursquareResult.response.venues.length > 0) {
+					fSresult = foursquareResult.response.venues[0].stats.checkinsCount;
+				} else {
+					fSresult = 0;
+				}
+				// For each result push into locationArray.
+				locationArray[parameter.index].foursquareCheckin = fSresult;
+				checkIfCompleted();
+			}
+			// If foursquare fail, the foursquare checkIn is set to "can't connect, try later".
+		).fail(function() {
+			locationArray[parameter.index].foursquareCheckin = "can't connect, try later";
+			checkIfCompleted();
+		});
+	}
+
+	// Check if foursquare checkin is complete on each locationarray object, starts createPlace when done.
+	function checkIfCompleted() {
+		var isMissingCheckin = false;
+		for (var i = 0; i < locationArray.length; i++) {
+			var location = locationArray[i];
+			if (location.foursquareCheckin === undefined) {
+				isMissingCheckin = true;
+				break;
+			}
+		}
+		if (!isMissingCheckin) {
+			createPlace();
+		}
+
+	}
 
 	var Place = function(data) {
-		self = this;
+		var self = this;
 		this.name = data.name;
 		this.position = data.geometry.location;
 		this.lng = data.geometry.viewport.b.b;
 		this.lat = data.geometry.viewport.f.b;
 		this.id = data.place_id;
-		this.checkIn = data.checkIn;
+		this.foursquareCheckin = data.foursquareCheckin;
 		this.visible = ko.observable(true);
 		this.currentWeather = currentWeather;
-		this.checkInList = 'Foursquare checkins: '+ this.checkIn;
-		var markeritle =  this.name + ' Checkins: ' + this.checkIn;
+		this.contentString = "<div>" + this.name + " Forsquare checkins: " + this.foursquareCheckin;
+
+		if (data.photos) {
+			this.photo = '<br><img src="' + data.photos[0].getUrl({
+				maxHeight: 200,
+				maxWidth: 400
+			}) + '"><br>';
+			this.contentString += this.photo + "</div>";
+		} else {
+			this.contentString += "</div>";
+		}
+
+		this.infoWindow = InfoWindow;
+
 		this.marker = new google.maps.Marker({
 			map: map,
 			position: this.position,
-			title: markeritle,
 			animation: google.maps.Animation.DROP,
 			icon: defaultIcon,
 			id: this.id
@@ -102,38 +166,23 @@ function initMap() {
 			return true;
 		}, this);
 
-		this.bounce = function(place) {
-			google.maps.event.trigger(this.marker, 'click');
-			this.marker.setAnimation(google.maps.Animation.DROP);
-		};
-
-
 		this.marker.addListener('click', function() {
-			this.setIcon(treeIconYellow);
-			populateInfoWindow(this, largeInfowindow);
+			self.infoWindow.setContent(self.contentString);
+			self.infoWindow.open(map, this);
+			self.marker.setAnimation(google.maps.Animation.BOUNCE);
+			setTimeout(function() {
+				self.marker.setAnimation(null);
+			}, 1100);
+			map.setZoom(17);
+			map.setCenter(this.position);
 		});
 
+		this.bounce = function(place) {
+			google.maps.event.trigger(self.marker, 'click');
+		};
 	};
 
-	function callFoursquare(data) {
-		clientID = 'TTSUU4KIIOL2HILPY33444SNIIDYQRGVGX5XTFVZXV5T5FDT';
-		clientSecret = '5FD5J51HFV5W3XBD23TC4DDTL2A315KHIZHJQHECE0DYEW5C';
-
-		//foursquare API CALL
-		var foursquareURL = 'https://api.foursquare.com/v2/venues/search?ll=' + data.geometry.viewport.f.b + ',' + data.geometry.viewport.b.b + '&client_id=' + clientID + '&client_secret=' + clientSecret + '&v=20170101 ' + '&query=' + data.name;
-
-		$.getJSON(foursquareURL).done(function(foursquareResult) {
-				checkIn = foursquareResult.response.venues[0].stats.checkinsCount;
-				data.checkIn = checkIn;
-				var newPlace = new Place(data);
-				placeList.push(newPlace);
-		}).fail(function() {
-			data.checkIn = 'not available';
-			var newPlace = new Place(data);
-			placeList.push(newPlace);
-		});
-	}
-
+	// create Places from the results and a filtered list.
 	function ViewModel() {
 		var self = this;
 		self.arrayLength = locationArray.length;
@@ -143,10 +192,9 @@ function initMap() {
 		placeList = ko.observableArray([]);
 		//Push locationArray items into KO placeList array.
 		locationArray.forEach(function(data) {
-			callFoursquare(data);
+			var newPlace = new Place(data);
+			placeList.push(newPlace);
 		});
-
-
 		//Filter the listItem.
 		this.filteredList = ko.computed(function() {
 			var filter = self.searchItem().toLowerCase();
@@ -156,68 +204,24 @@ function initMap() {
 				});
 				return placeList();
 			} else {
-				return ko.utils.arrayFilter(placeList(), function(newPlace) {
-					var string = newPlace.name.toLowerCase();
-					var result = (string.search(filter) >= 0);
-					newPlace.visible(result);
-					return result;
-				});
+				return ko.utils.arrayFilter(placeList(),
+					function(newPlace) {
+						var string = newPlace.name.toLowerCase();
+						var result = (string.search(filter) >= 0);
+						newPlace.visible(result);
+						return result;
+					});
 			}
 		}, self);
-
 	}
 
-	//This starts the app when API result is done.
-	function startApp() {
+	// Start the viewmodel to create places.
+	function createPlace() {
 		ko.applyBindings(new ViewModel());
 	}
 }
 
-
-// when a marker is clicked on it populates that Infowindow and uses google places getDetails to get the places details.
-function populateInfoWindow(marker, infowindow) {
-	var service = new google.maps.places.PlacesService(map);
-
-	service.getDetails({
-		placeId: marker.id
-	}, function(place, status) {
-		if (status === google.maps.places.PlacesServiceStatus.OK) {
-
-			console.log(place);
-			// Set the marker property on this infowindow so it isn't created again.
-			infowindow.marker = marker;
-			var innerHTML = '<div>';
-			if (place.photos) {
-				innerHTML += '<br><img src="' + place.photos[0].getUrl({
-					maxHeight: 200,
-					maxWidth: 400
-				}) + '"><br>';
-			}
-			if (place.name) {
-				innerHTML += '<p>' + place.name + '</p>';
-			}
-			if (currentWeather.length > 0) {
-				innerHTML += '<p>' + currentWeather + '</p>';
-			}
-			if (place.formatted_address) {
-				innerHTML += '<p>' + place.formatted_address + '</p>';
-			}
-			if (place.website) {
-				innerHTML += '<a target="_blank" href="' + place.website + '">Website</a>';
-			}
-			if (place.rating) {
-				innerHTML += '<p>Rating:</strong>' + place.rating + '<strong></p>';
-			}
-
-			innerHTML += '</div>';
-			infowindow.setContent(innerHTML);
-			infowindow.open(map, marker);
-			// Make sure the marker property is cleared if the infowindow is closed.
-			infowindow.addListener('closeclick', function() {
-				infowindow.marker = null;
-			});
-		} else {
-			window.alert("It seems to be a problem with Google API");
-		}
-	});
+// google map error, called in index where it loads Google Map API, on error.
+function mapError() {
+	alert("Can't connect to Google Maps. Refresh the page or try again later.");
 }

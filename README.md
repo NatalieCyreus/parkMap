@@ -1,5 +1,5 @@
 # Park Map 
-![parkMap Image](images/parkMap.jpg)
+![parkMap Image](images/mapImage.jpg)
 ## Udacity FrontEnd Nanodegree Neighborhood Map
 This application shows parks in a specific area. Displayed on a map using Google Map API, it shows the current weather on the location by a third party API, openWeather.org. 
 I build the app with HTML, JavaScript, CSS, KnockOut framework and jQuery.

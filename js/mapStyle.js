@@ -40,7 +40,7 @@ var styles = [{
 	"featureType": "poi.park",
 	"elementType": "geometry",
 	"stylers": [{
-		"color": "#9ACD32"
+		"color": "#C0D9AF"
 	}]
 }, {
 	"featureType": "poi.park",

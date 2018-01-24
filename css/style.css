@@ -20,16 +20,10 @@ p {
      position: absolute;
      right: 0px;
 }
- #searchInArea {
-     color: #ffffff;
-     background-color: #000000;
-     width: 80px;
-     height: 30px;
-}
  .info-box {
      order: 1;
      flex-grow: 1;
-     background: #556B2F;
+     background: #8FA880;
      height: 100%;
      line-height: 35px;
      padding: 10px 10px 30px 10px;
@@ -67,15 +61,12 @@ p {
  li {
      font-size: 17px;
      font-weight: bold;
+     color: #333333;
 }
 
-#hover:hover {
+#list-top:hover {
   cursor: pointer;
-  background-color: #6B8E23;
-}
- #list {
-     border-bottom: 1px solid #6B8E23;
-     margin: 1px;
+  background-color: #8FA880;
 }
 
  @media only screen and (max-device-width : 700px), only screen and (max-width : 700px){

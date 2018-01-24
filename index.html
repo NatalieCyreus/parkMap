@@ -1,42 +1,42 @@
+<!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>parkMap</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="description" content="Natalie Cyreus Udacity Project">
-		<meta name="keywords" content="google-map, parks, education">
-		<meta name="author" content="Natalie Cyreus">
-		<link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto" rel="stylesheet">
-		<link rel="stylesheet" href="css/style.css">
-	</head>
-	<body>
-		<div class="container">
-			<div class="info-box">
-				<div>
-					<h2 data-bind="text: address"></h2>
-					<h4 class="inline" data-bind="text: displayCurrentweather"></h4>
-					<a id="weather" target="_blank" href="http://openweathermap.org/">
-						<p>by openWeathermap</p></a>
-					<h4 class="inline" id="resultNr" type="text" data-bind="text: arrayLength"></h4>
 
-					<h4 class="inline">Park results</h4>
-				</div>
-				<input id="filter" type="text" placeholder="filter through result" data-bind="textInput: searchItem, valueUpdate: 'afterkeydown'">
-				<ul data-bind="foreach: filteredList" id="resultList">
-					<div id="hover">
-					<li data-bind="text: name, click: bounce" id="list-top" ></li>
-					<h5 data-bind="text: checkInList, click: bounce" id="list">Checkin</h5>
-				</div>
-				</ul>
+<head>
+	<meta charset="utf-8">
+	<title>parkMap</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Natalie Cyreus Udacity Project">
+	<meta name="keywords" content="google-map, parks, education, project">
+	<meta name="author" content="Natalie Cyreus">
+	<link rel="icon" href="images/treeIcon.png">
+	<link link="https://fonts.googleapis.com/css?family=Open+Sans|Roboto" rel="stylesheet">
+	<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+	<div class="container">
+		<div class="info-box">
+			<div>
+				<h2 data-bind="text: address"></h2>
+				<h4 class="inline" data-bind="text: displayCurrentweather"></h4>
+				<a id="weather" target="_blank" href="http://openweathermap.org/">
+					<p>by openWeathermap</p>
+				</a>
+				<h4 class="inline" id="resultNr" data-bind="text: arrayLength"></h4>
+				<h4 class="inline">Park results</h4>
 			</div>
-			<div id="map"></div>
+			<input id="filter" type="text" placeholder="filter through result" data-bind="textInput: searchItem, valueUpdate: 'afterkeydown'">
+			<ul data-bind="foreach: filteredList" id="resultList">
+				<li data-bind="text: name, click: bounce" id="list-top"></li>
+			</ul>
 		</div>
-		<script src="js/mapStyle.js"></script>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-		<script src="js/knockout.js"></script>
-		<script src="js/main.js"></script>
-		<script async defer
-			src=
-			"https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&&key=AIzaSyCgHys6T215R_36DgCvnHIjl9Cfya3U5SM&v=3&callback=initMap"></script>
-	</body>
+		<div id="map"></div>
+	</div>
+	<script src="js/mapStyle.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="js/knockout.js"></script>
+	<script src="js/main.js"></script>
+	<script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&&key=AIzaSyCgHys6T215R_36DgCvnHIjl9Cfya3U5SM&v=3&callback=initMap" onerror="mapError()"></script>
+</body>
+
 </html>
