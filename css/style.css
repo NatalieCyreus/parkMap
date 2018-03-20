@@ -23,7 +23,7 @@ p {
  .info-box {
      order: 1;
      flex-grow: 1;
-     background: #8FA880;
+     background: #333;
      height: 100%;
      line-height: 35px;
      padding: 10px 10px 30px 10px;
